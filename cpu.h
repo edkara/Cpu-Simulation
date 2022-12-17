@@ -5,7 +5,6 @@
 class Cpu {
 public:
 	Cpu();
-	Cpu(int accumulator, int programCounter, int tact);
 	void setAccumulator(int accumulator);
 	int getAccumulator();
 	void setProgramCounter(int programCounter);
@@ -19,8 +18,7 @@ public:
 	void subtract(int n);
 	void init(Scheduler* scheduler, string fileName);
 	void peripheral(Scheduler* scheduler, Process* process);
-	void execute(Scheduler* scheduler, Process* process);
-	void stop(Scheduler* scheduler);
+	void execute(Scheduler* scheduler);
 	~Cpu();
 private:
 	int accumulator;

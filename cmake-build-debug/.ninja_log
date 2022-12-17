@@ -1,0 +1,6 @@
+# ninja log v5
+0	1191	1671302496706735528	CMakeFiles/simulated_cpu.dir/cpu.cpp.o	d8b0d167992b4546
+1	1216	1671302496733402196	CMakeFiles/simulated_cpu.dir/process.cpp.o	5bd2c8a94456bce8
+0	1225	1671302496743402196	CMakeFiles/simulated_cpu.dir/main.cpp.o	3cb3cfd4961384bc
+1192	2059	1671302497576735547	CMakeFiles/simulated_cpu.dir/scheduler.cpp.o	ac33087dbdadc6da
+2059	2197	1671302497713402217	simulated_cpu	1d66da86bdb592bd

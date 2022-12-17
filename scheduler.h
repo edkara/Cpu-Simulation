@@ -7,13 +7,19 @@ public:
 	Scheduler();
 	vector<Process*> getBlockedProcesses() const;
 	vector<Process*> getReadyProcesses() const;
-	void blockRunningProcess();
-	void deleteRunningProcess();
+
+	bool existsRunningProcess();
+
+	void blockRunningProcess(Process* process);
+	void deleteRunningProcess(Process* process);
 	void deleteBlockedProcess(Process* process);
-	void startRunningProcess();
+	void startProcess();
 	void updateWait();
+	int stopProcess(Process* process);
+
+	Process* getLastBlockedProcess();
 	Process* getRunningProcess();
-	Process* loadNewProcess(string &fileName);
+	void loadNewProcess(string fileName);
 	~Scheduler();
 
 private:

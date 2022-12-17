@@ -15,15 +15,31 @@ vector<Process*> Scheduler::getBlockedProcesses() const{
 	return this->blockedProcesses;
 }
 
-void Scheduler::blockRunningProcess() {
+
+bool Scheduler::existsRunningProcess() {
+	bool processExisting = false;
 	vector<Process*>::iterator it;
 	for (it = readyProcesses.begin(); it != readyProcesses.end(); ) {
-		if((*it)->getState() == State::running) {
+		if((*it)->getState() == State::running ) {
+			processExisting = true;
+			break;
+		}
+		else {
+			++it;
+		}
+	}
+	return processExisting;
+}
+
+void Scheduler::blockRunningProcess(Process* process) {
+	vector<Process*>::iterator it;
+	for (it = readyProcesses.begin(); it != readyProcesses.end(); ) {
+		if((*it)->getState() == State::running && (*it)->getPid() == process->getPid()) {
 			(*it)->setState(State::blocked);
 			(*it)->setWait(waitTime);
 			blockedProcesses.push_back((*it));
-			delete *it;
 			it = readyProcesses.erase(it);
+			break;
 		}
 		else {
 			++it;
@@ -31,12 +47,13 @@ void Scheduler::blockRunningProcess() {
 	}
 }
 
-void Scheduler::deleteRunningProcess() {
+void Scheduler::deleteRunningProcess(Process* process) {
 	vector<Process*>::iterator it;
 	for (it = readyProcesses.begin(); it != readyProcesses.end(); ) {
-		if((*it)->getState() == State::running) {
-			delete *it;
+		if((*it)->getState() == State::running && (*it)->getPid() == process->getPid()) {
+			delete (*it);
 			it = readyProcesses.erase(it);
+			break;
 		}
 		else {
 			++it;
@@ -44,37 +61,42 @@ void Scheduler::deleteRunningProcess() {
 	}
 }
 
-void Scheduler::startRunningProcess() {
+void Scheduler::startProcess() {
 	if(getReadyProcesses().size() > 0) {
-		vector<Process*>::iterator it;
-		for (it = readyProcesses.begin(); it != readyProcesses.end(); ) {
-			if((*it)->getState() != State::running) {
-				(*it)->setState(State::running);
-				break;
-			} else {
-				++it;
+		if(!existsRunningProcess()) {
+			vector<Process *>::reverse_iterator it;
+			for (it = readyProcesses.rbegin(); it != readyProcesses.rend(); ) {
+				if((*it)->getState() == State::ready) {
+					(*it)->setState(State::running);
+					break;
+				} else {
+					++it;
+				}
 			}
+			cout << "The last ready Process was started!"<< endl;
 		}
 	} else {
-		cout << "There are no existing ready processes!" << endl;
+		cout << "I wanted to start new process, but there was no existing ready/running processes at all!" << endl;
 	}
 }
 
 Process* Scheduler::getRunningProcess(){
-	Process *process = nullptr;
+	Process* tmp = nullptr;
 	vector<Process*>::iterator it;
 	for (it = readyProcesses.begin(); it != readyProcesses.end(); ) {
 		if((*it)->getState() == State::running) {
-			return (*it);
+			tmp = (*it);
+			break;
 		} else {
 			++it;
 		}
 	}
-	return process;
+	return tmp;
 }
 
-Process* Scheduler::loadNewProcess(string &fileName) {
-	ifstream program(fileName);
+void Scheduler::loadNewProcess(string fileName) {
+	string fullPath = "/home/eddka/CLionProjects/BS_Moore/bs_03/" + fileName;
+	ifstream program(fullPath);
 	string line;
 	vector<string> commandMemory;
 	if(program.is_open())
@@ -88,15 +110,14 @@ Process* Scheduler::loadNewProcess(string &fileName) {
 
 	Process* process = new Process(fileName, commandMemory);
 	this->readyProcesses.push_back(process);
-	return process;
 }
 
 void Scheduler::deleteBlockedProcess(Process *process) {
 	vector<Process*>::iterator it;
 	for (it = blockedProcesses.begin(); it != blockedProcesses.end(); ) {
-		if((*it)->getPid() == process->getPid()) {
-			delete *it;
-			it = readyProcesses.erase(it);
+		if((*it)->getPid() == process->getPid() && (*it)->getPid() == process->getPid()) {
+			it = blockedProcesses.erase(it);
+			break;
 		}
 		else {
 			++it;
@@ -108,18 +129,41 @@ void Scheduler::updateWait() {
 	if (this->blockedProcesses.size() > 0) {
 		vector<Process *>::iterator it;
 		for (it = blockedProcesses.begin(); it != blockedProcesses.end();) {
-			int wait = (*it)->getWait();
-			(*it)->setWait(wait--);
+			(*it)->setWait((*it)->getWait() - 1);
 			if ((*it)->getWait() == 0) {
 				(*it)->setState(State::ready);
-				if (this->readyProcesses.size() < 0) {
+				if (!existsRunningProcess()) {
 					(*it)->setState(State::running);
 				}
 				this->readyProcesses.push_back((*it));
 				deleteBlockedProcess((*it));
+			} else {
+				++it;
 			}
 		}
 	}
+}
+
+int Scheduler::stopProcess(Process* process) {
+	deleteRunningProcess(process);
+	if(getReadyProcesses().size() > 0) {
+		startProcess();
+		return 0;
+	}
+	return 1;
+}
+
+
+Process* Scheduler::getLastBlockedProcess() {
+	Process* tmp  = nullptr;
+	vector<Process *>::reverse_iterator it;
+	for ( it = blockedProcesses.rbegin(); it != blockedProcesses.rend(); ++it ) {
+		if((*it)->getState() == State::blocked && (*it)->getWait() > 0) {
+			tmp = (*it);
+			break;
+		}
+	}
+	return tmp;
 }
 
 Scheduler::~Scheduler() {

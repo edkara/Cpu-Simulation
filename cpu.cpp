@@ -9,10 +9,6 @@ Cpu::Cpu() {
 
 }
 
-Cpu::Cpu(int accumulator, int programCounter, int tact)
-: accumulator(accumulator), programCounter(programCounter), tact(tact){
-}
-
 void Cpu::setAccumulator(int accumulator) {
 	this->accumulator = accumulator;
 }
@@ -50,15 +46,20 @@ void Cpu::subtract(int n) {
 }
 
 void Cpu::peripheral(Scheduler* scheduler, Process* process) {
+	// zuerst wird der counter um 1 erhöht, damit ich später dort anfange, wo ich aufgehört habe
 	process->setIndex(getProgramCounter()+1);
 	process->setData(getAccumulator());
-	scheduler->blockRunningProcess();
-	scheduler->startRunningProcess();
+
+	// blockiere der Process
+	scheduler->blockRunningProcess(process);
+
+	// starte neuer ready Process, falls es in dem vector gibt
+	scheduler->startProcess();
 }
 
 void Cpu::init(Scheduler* scheduler, string fileName) {
-	Process* newProcess = scheduler->loadNewProcess(fileName);
-	execute(scheduler, newProcess);
+	scheduler->loadNewProcess(fileName);
+	execute(scheduler);
 }
 
 pair<string,string> Cpu::parseCommand(string command) {
@@ -70,34 +71,40 @@ pair<string,string> Cpu::parseCommand(string command) {
 	return parsedCommand;
 }
 
-void Cpu::execute(Scheduler* scheduler, Process* process) {
+void Cpu::execute(Scheduler* scheduler) {
 	while (simulation == 1) {
 		scheduler->updateWait();
-		if (scheduler->getReadyProcesses().size() > 0) {
+		Process* runningProcess = nullptr;
+
+		if (scheduler->existsRunningProcess()) {
+			runningProcess = scheduler->getRunningProcess();
 			quantumCounter = 0;
-			process = scheduler->getRunningProcess();
-			setProgramCounter(process->getIndex());
-			setAccumulator(process->getData());
-			setTact(tact++);
+			setProgramCounter(runningProcess->getIndex());
+			setAccumulator(runningProcess->getData());
 		}
 		else {
-			cout << setw(10) << getTact() << setw(10) << process->getPid() << setw(10) << process->getFileName() << setw(10) << getProgramCounter()
-						<< "/" << process->getCommandMemory().size() - 1 << setw(10) << getAccumulator() << setw(13) << "--" << endl;
-			setTact(tact++);
+			Process* lastBlockedProcess = scheduler->getLastBlockedProcess();
+			cout << setw(10) << getTact() << setw(10) << lastBlockedProcess->getPid() << setw(10) << lastBlockedProcess->getFileName()
+				<< setw(10) << getProgramCounter() << "/" << lastBlockedProcess->getCommandMemory().size() - 1
+				<< setw(10) << getAccumulator() << setw(13) << "--" << endl;
+			setTact(getTact() + 1);
 			continue;
 		}
 
-		while (getProgramCounter() < process->getCommandMemory().size()) {
+		while (getProgramCounter() < runningProcess->getCommandMemory().size()) {
 			quantumCounter++;
-			string command = process->getCommandMemory().at(getProgramCounter());
-			cout << setw(10) << getTact() << setw(10) << process->getPid() << setw(10) << process->getFileName()
-					<< std::setw(10) << getProgramCounter() << "/" << process->getCommandMemory().size()-1 << setw(10) << getAccumulator() << std::setw(13) << command << endl;
+			string command = runningProcess->getCommandMemory().at(getProgramCounter());
+			cout << setw(10) << getTact() << setw(10) << runningProcess->getPid()
+				<< setw(10) << runningProcess->getFileName() << std::setw(10) << getProgramCounter() << "/" << runningProcess->getCommandMemory().size()-1
+				<< setw(10) << getAccumulator() << std::setw(13) << command << endl;
 			pair<string, string> givenCommand = parseCommand(command);
 			string function = givenCommand.first;
 			string variable = givenCommand.second;
 
-			if(quantumCounter%quantum == 0 ){
-
+			if(quantumCounter%quantum == 0){
+				function = "P";
+				int newPc = getProgramCounter() - 1;
+				setProgramCounter(newPc);
 			}
 			if (function == "L") {
 				load(stoi(variable));
@@ -109,30 +116,33 @@ void Cpu::execute(Scheduler* scheduler, Process* process) {
 				subtract(stoi(variable));
 			}
 			else if (function == "P") {
-				peripheral(scheduler, process);
+				peripheral(scheduler, runningProcess);
+				break;
 			}
 			else if (function == "X") {
-				scheduler->getRunningProcess()->setIndex(getProgramCounter()+1);
-				scheduler->getRunningProcess()->setData(getAccumulator());
-				scheduler->getRunningProcess()->setState(State::ready);
+				runningProcess->setState(State::ready);
+				runningProcess->setIndex(getProgramCounter()+1);
+				runningProcess->setData(getAccumulator());
 				scheduler->loadNewProcess(variable);
+				break;
 			}
 			else if (function == "Z") {
-				stop(scheduler);
+				int terminate = scheduler->stopProcess(runningProcess);
+				if(terminate) {
+					cout << "The running process was deleted!" << endl;
+					if(scheduler->getBlockedProcesses().size() == 0) {
+						cout << "There was no blocked or ready processes. So I have stopped the simulation! Bye." << endl;
+						simulation = 0;
+						break;
+					}
+				}
+				cout << "The running process was deleted and new process was started!" << endl;
+				break;
 			}
-			setProgramCounter(this->programCounter++);
-			setTact(this->tact++);
+			setProgramCounter(getProgramCounter()+1);
+			setTact(getTact() + 1);
 			scheduler->updateWait();
 		}
-	}
-}
-
-void Cpu::stop(Scheduler* scheduler) {
-	scheduler->deleteRunningProcess();
-	if(scheduler->getReadyProcesses().size() > 0) {
-		scheduler->startRunningProcess();
-	} else if(scheduler->getBlockedProcesses().size() == 0){
-		simulation = 0;
 	}
 }
 
