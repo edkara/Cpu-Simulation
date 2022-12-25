@@ -1,8 +1,10 @@
 #include "process.h"
 
 static int tmpPid = 0;
+const int PAGETABLE_SIZE = 16;				//we have 16 entries in page table
 
-Process::Process(const string &fileName, vector<string> commandMemory){
+Process::Process(const string &fileName, vector<string> commandMemory)
+	:pageTable(PAGETABLE_SIZE) {
 	this->pid = tmpPid++;
 	this->fileName = fileName;
 	this->commandMemory = commandMemory;
@@ -10,6 +12,7 @@ Process::Process(const string &fileName, vector<string> commandMemory){
 	this->state = State::running;
 	this->index = 0;
 	this->wait = 0;
+	createAllPagesToSingleProcess();
 }
 
 void Process::setPid(int pid) {
@@ -60,20 +63,16 @@ State Process::getState() const {
 	return this->state;
 }
 
-void Process::setCommandMemory(vector<string> commandMemory) {
-	this->commandMemory = commandMemory;
-}
-
 vector<string> Process::getCommandMemory() {
 	return this->commandMemory;
 }
 
-void Process::printAllCommands() const{
-	for (auto pr : commandMemory) {
-		cout << pr << endl;
-	}
+vector<Page*> Process::getPageTable() {
+	return this->pageTable;
 }
 
-Process::~Process() {
-
+void Process::createAllPagesToSingleProcess() {
+	for(int i = 0; i < this->pageTable.size(); i++) {
+		this->pageTable.at(i) = new Page();
+	}
 }

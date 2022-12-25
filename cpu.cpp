@@ -3,7 +3,7 @@
 
 int simulation = 1;
 int quantumCounter = 0;
-int quantum = 1000;
+int quantum = 5;
 
 Cpu::Cpu() {
 
@@ -45,21 +45,25 @@ void Cpu::subtract(int n) {
 	this->accumulator-=n;
 }
 
+void Cpu::write(int n) {
+	RAM.at(n) = static_cast<char>(this->accumulator);
+}
+
+void Cpu::read(int n) {
+	this->accumulator = RAM.at(n);
+}
+
 void Cpu::peripheral(Scheduler* scheduler, Process* process) {
-	// zuerst wird der counter um 1 erhöht, damit ich später dort anfange, wo ich aufgehört habe
-	process->setIndex(getProgramCounter()+1);
+	process->setIndex(getProgramCounter()+1);			// zuerst wird der counter um 1 erhöht, damit ich später dort anfange, wo ich aufgehört habe
 	process->setData(getAccumulator());
-
-	// blockiere der Process
-	scheduler->blockRunningProcess(process);
-
-	// starte neuer ready Process, falls es in dem vector gibt
-	scheduler->startProcess();
+	scheduler->blockRunningProcess(process);			// blockiere der Process
+	scheduler->startProcess();							// starte neuer ready Process, falls es in dem vector gibt
 }
 
 void Cpu::init(Scheduler* scheduler, string fileName) {
 	scheduler->loadNewProcess(fileName);
-	execute(scheduler);
+	MMU* mmu = new MMU();
+	execute(scheduler, mmu);
 }
 
 pair<string,string> Cpu::parseCommand(string command) {
@@ -71,9 +75,10 @@ pair<string,string> Cpu::parseCommand(string command) {
 	return parsedCommand;
 }
 
-void Cpu::execute(Scheduler* scheduler) {
+void Cpu::execute(Scheduler* scheduler, MMU* mmu) {
 	while (simulation == 1) {
 		scheduler->updateWait();
+		//updateAccessTime();
 		Process* runningProcess = nullptr;
 
 		if (scheduler->existsRunningProcess()) {
@@ -126,6 +131,14 @@ void Cpu::execute(Scheduler* scheduler) {
 				scheduler->loadNewProcess(variable);
 				break;
 			}
+			else if (function == "W") {
+				int physicalAddress = mmu->convertToPhysicalAddress(variable, runningProcess, true);
+				write(physicalAddress);
+			}
+			else if (function == "R") {
+				int physicalAddress = mmu->convertToPhysicalAddress(variable, runningProcess);
+				read(physicalAddress);
+			}
 			else if (function == "Z") {
 				int terminate = scheduler->stopProcess(runningProcess);
 				if(terminate) {
@@ -142,6 +155,41 @@ void Cpu::execute(Scheduler* scheduler) {
 			setProgramCounter(getProgramCounter()+1);
 			setTact(getTact() + 1);
 			scheduler->updateWait();
+			//updateAccessTime();
+			updateDisk();
+		}
+	}
+}
+
+/*
+void updateAccessTime() {
+	if(LOOK_UP_TABLE.size() > 0) {
+		vector<pair<Page*, Process*>>::iterator it;
+		for (it = LOOK_UP_TABLE.begin(); it != LOOK_UP_TABLE.end(); ++it) {
+			Page* page = (*it).first;
+			if(page->isReferenced() ) {
+				page->setAccessTime(page->getAccessTime() + 1);
+				if(page->getAccessTime() == 5) {
+					page->setReferencedBit(false);
+					page->setAccessTime(0);
+				}
+			}
+		}
+	}
+}
+*/
+
+//TODO: Fehler out_of_range, SEE WHERE THE ERROR!
+void updateDisk() {
+	if(LOOK_UP_TABLE.size() > 0) {
+		vector<pair<Page*, Process*>>::iterator it;
+		for (it = LOOK_UP_TABLE.begin(); it != LOOK_UP_TABLE.end(); ++it) {
+			Page* page = (*it).first;
+			Process* process = (*it).second;
+			for(int j = 0; j < PAGE_SIZE; j++) {
+				HDD.at(process->getIndex()).at(page->getPageFrameId() * PAGE_SIZE + j) =
+						RAM.at(page->getPageFrameId() * PAGE_SIZE + j );
+			}
 		}
 	}
 }

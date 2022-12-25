@@ -2,6 +2,13 @@
 #include "scheduler.h"
 
 const int waitTime = 4;
+const int PAGE_SIZE = 64;
+const int FRAME_TABLE_SIZE = 4;
+const int MAX_VIRTUAL_ADDRESS = 1023;
+
+vector<char> RAM(PAGE_SIZE * FRAME_TABLE_SIZE);
+vector<vector<char>> HDD;
+vector<pair<Page*, Process*>> LOOK_UP_TABLE;
 
 Scheduler::Scheduler() {
 
@@ -107,9 +114,10 @@ void Scheduler::loadNewProcess(string fileName) {
 		}
 		program.close();
 	} else cout << "\n ERROR! Program not found." << endl;
-
 	Process* process = new Process(fileName, commandMemory);
 	this->readyProcesses.push_back(process);
+	// add virtual address
+	HDD.push_back(vector<char>(1024));
 }
 
 void Scheduler::deleteBlockedProcess(Process *process) {

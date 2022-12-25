@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include "page.h"
 
 using namespace std;
 
@@ -11,7 +12,6 @@ enum State {
 	ready,
 	blocked,
 };
-static const char *enum_string[] = { "running", "ready", "blocked" };
 
 class Process {
 public:
@@ -28,31 +28,20 @@ public:
 	int getWait() const;
 	void setState(State state);
 	State getState() const;
-	void setCommandMemory(vector <string> commandMemory);
+	void createAllPagesToSingleProcess();
 	vector<string> getCommandMemory();
-	void printAllCommands() const;
-	~Process();
+	vector<Page*> getPageTable();
+	~Process() = default;
 private:
 	int pid;
 	string fileName;
 	State state;
 	vector<string> commandMemory;
-	int data;		// for acc
-	int index;		// for pc
-	int wait;		// when in blocked
-
+	int data;					// for acc
+	int index;					// for pc
+	int wait;					// when in blocked
+	vector<Page*> pageTable;	// virtual memory = page table
 };
-
-/*string convertToEnum(int value) {
-	string MyString(enum_string[value]);
-	return MyString;
-}*/
-
-inline ostream& operator <<(ostream& output, const Process& process) {
-	output << process.getPid() << setw(5) << setfill(' ') << left << process.getFileName()
-	<< setw(5)  << setfill(' ')<< left << setw(5)  << setfill(' ')<< left << setw(5) << setfill(' ') << left << '\n';
-	return output;
-}
 
 
 #endif //BS_MOORE_PROZESS_H
