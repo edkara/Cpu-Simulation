@@ -12,13 +12,14 @@ extern vector<pair<Page*, Process*>> LOOK_UP_TABLE;
 
 class Scheduler {
 public:
-	Scheduler();
+	Scheduler() = default;
 	vector<Process*> getBlockedProcesses() const;
 	vector<Process*> getReadyProcesses() const;
 	bool existsRunningProcess();
 	void blockRunningProcess(Process* process);
 	void deleteRunningProcess(Process* process);
 	void deleteBlockedProcess(Process* process);
+    void clearLookUpTable(Process* proc);
 	void startProcess();
 	void updateWait();
 	int stopProcess(Process* process);

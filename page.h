@@ -13,15 +13,12 @@ public:
 	void setPresentBit(bool present);
 	bool isReferenced();
 	void setReferencedBit(bool accessed);
-	int getAccessTime();
-	void setAccessTime(int accessTime);
 	~Page();
 private:
 	int pageFrameId; 		//where in ram
 	bool modified;			//dirty bit = when write => 1. When 1, Page frame in hdd, otherwise (when 0) overwrite
 	bool present;			//when present = 1, otherwise = 0. When 0 and access => page error
 	bool referenced;		//when write or load (every time) => 1.
-	int accessTime;
 };
 
 

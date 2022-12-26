@@ -9,6 +9,10 @@ add_executable(simulated_cpu
         cpu.cpp
         cpu.h
         main.cpp
+        mmu.cpp
+        mmu.h
+        page.cpp
+        page.h
         process.cpp
         process.h
         scheduler.cpp

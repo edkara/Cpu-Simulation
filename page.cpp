@@ -5,7 +5,6 @@ Page::Page() {
 	this->present = 0;
 	this->modified = 0;
 	this->referenced = 0;
-	this->accessTime = 0;
 }
 
 int Page::getPageFrameId() {
@@ -41,13 +40,6 @@ void Page::setReferencedBit(bool accessed) {
 	this->referenced = accessed;
 }
 
-int Page::getAccessTime() {
-	return this->accessTime;
-}
-
-void Page::setAccessTime(int accessTime) {
-	this->accessTime = accessTime;
-}
 
 Page::~Page() {
 

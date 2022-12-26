@@ -9,7 +9,6 @@ int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offs
 		page->setPresentBit(true);
 		page->setReferencedBit(true);
 		page->setPageFrameId(pageFrameNumber );
-		page->setAccessTime(0);
 		page->setModifiedBit(modified);
 		LOOK_UP_TABLE.push_back(make_pair(page, process));
 		tmp = ( pageFrameNumber * PAGE_SIZE ) + offset;
@@ -23,7 +22,6 @@ int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offs
 			page->setPresentBit(true);
 			page->setReferencedBit(true);
 			page->setPageFrameId(indexOfSwapped);
-			page->setAccessTime(0);
 			page->setModifiedBit(modified);
 			tmp = page->getPageFrameId() * PAGE_SIZE + offset;
 		} else {
@@ -46,7 +44,6 @@ int MMU::convertToPhysicalAddress(const string &address, Process* process, bool 
 
 		if(page->isPresent()) {											// Page in RAM
 			page->setReferencedBit(true);						// 0, 1, 2, 3 in physical
-			page->setAccessTime(0);
 			page->setModifiedBit(modified);
 			physicalAddress = page->getPageFrameId() * PAGE_SIZE + offset;
 		} else {														// Page does not exist
@@ -67,7 +64,7 @@ int swap(bool accessed, bool modified) {
 		if(page->isReferenced() == accessed && page->isModified() == modified ) {
 			Process* process = (*it).second;
 			for(int j = 0; j < PAGE_SIZE; j++) {
-				HDD.at(process->getIndex()).at(page->getPageFrameId() * PAGE_SIZE + j) =
+				HDD.at(process->getPid()).at(page->getPageFrameId() * PAGE_SIZE + j) =
 						RAM.at(page->getPageFrameId() * PAGE_SIZE + j );
 			}
 			page->setPresentBit(false);
@@ -108,6 +105,6 @@ void loadInRAM(pair<Page*, Process*> toLoad, int pageId) {
 	//virtual addresse - in HDD. statt pageFrameId - pageID
 	for(int j = 0; j < PAGE_SIZE; j++) {
 		RAM.at(page->getPageFrameId() * PAGE_SIZE + j) =
-				HDD.at(process->getIndex()).at( pageId * PAGE_SIZE + j);
+				HDD.at(process->getPid()).at( pageId * PAGE_SIZE + j);
 	}
 }

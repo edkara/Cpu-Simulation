@@ -1,3 +1,3 @@
-/home/eddka/simulated-cpu/cmake-build-debug/CMakeFiles/simulated_cpu.dir
-/home/eddka/simulated-cpu/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/eddka/simulated-cpu/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/edikaraasenov/Documents/simulated-cpu/cmake-build-debug/CMakeFiles/simulated_cpu.dir
+/Users/edikaraasenov/Documents/simulated-cpu/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/edikaraasenov/Documents/simulated-cpu/cmake-build-debug/CMakeFiles/rebuild_cache.dir

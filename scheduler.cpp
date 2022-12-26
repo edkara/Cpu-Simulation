@@ -10,10 +10,6 @@ vector<char> RAM(PAGE_SIZE * FRAME_TABLE_SIZE);
 vector<vector<char>> HDD;
 vector<pair<Page*, Process*>> LOOK_UP_TABLE;
 
-Scheduler::Scheduler() {
-
-}
-
 vector<Process*> Scheduler::getReadyProcesses() const{
 	return this->readyProcesses;
 }
@@ -102,7 +98,7 @@ Process* Scheduler::getRunningProcess(){
 }
 
 void Scheduler::loadNewProcess(string fileName) {
-	string fullPath = "/home/eddka/CLionProjects/BS_Moore/bs_03/" + fileName;
+	string fullPath = "/Users/edikaraasenov/Documents/simulated-cpu/" + fileName;
 	ifstream program(fullPath);
 	string line;
 	vector<string> commandMemory;
@@ -152,7 +148,23 @@ void Scheduler::updateWait() {
 	}
 }
 
+void Scheduler::clearLookUpTable(Process* proc) {
+    if(LOOK_UP_TABLE.size() > 0) {
+        vector<pair<Page*, Process*>>::iterator it;
+        for (it = LOOK_UP_TABLE.begin(); it != LOOK_UP_TABLE.end(); ) {
+            if((*it).second->getPid() == proc->getPid()) {
+                //delete ((*it).first);
+                //delete ((*it).second);
+                it = LOOK_UP_TABLE.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+}
+
 int Scheduler::stopProcess(Process* process) {
+    clearLookUpTable(process);
 	deleteRunningProcess(process);
 	if(getReadyProcesses().size() > 0) {
 		startProcess();

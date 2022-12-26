@@ -140,9 +140,12 @@ void Cpu::execute(Scheduler* scheduler, MMU* mmu) {
 				read(physicalAddress);
 			}
 			else if (function == "Z") {
+                //int indexOfProcess = runningProcess->getPid();
 				int terminate = scheduler->stopProcess(runningProcess);
 				if(terminate) {
 					cout << "The running process was deleted!" << endl;
+
+                    //HDD.erase( next( begin( HDD ), indexOfProcess ) );
 					if(scheduler->getBlockedProcesses().size() == 0) {
 						cout << "There was no blocked or ready processes. So I have stopped the simulation! Bye." << endl;
 						simulation = 0;
@@ -155,7 +158,6 @@ void Cpu::execute(Scheduler* scheduler, MMU* mmu) {
 			setProgramCounter(getProgramCounter()+1);
 			setTact(getTact() + 1);
 			scheduler->updateWait();
-			//updateAccessTime();
 			updateDisk();
 		}
 	}
@@ -179,7 +181,6 @@ void updateAccessTime() {
 }
 */
 
-//TODO: Fehler out_of_range, SEE WHERE THE ERROR!
 void updateDisk() {
 	if(LOOK_UP_TABLE.size() > 0) {
 		vector<pair<Page*, Process*>>::iterator it;
@@ -187,7 +188,7 @@ void updateDisk() {
 			Page* page = (*it).first;
 			Process* process = (*it).second;
 			for(int j = 0; j < PAGE_SIZE; j++) {
-				HDD.at(process->getIndex()).at(page->getPageFrameId() * PAGE_SIZE + j) =
+				HDD.at(process->getPid()).at(page->getPageFrameId() * PAGE_SIZE + j) =
 						RAM.at(page->getPageFrameId() * PAGE_SIZE + j );
 			}
 		}
