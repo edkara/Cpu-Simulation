@@ -1,7 +1,6 @@
 #include "mmu.h"
 
 
-//TODO: W100 out of range - wenn all frames inside physical - NRU check
 int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offset, int pageId ,bool modified) {
 	int tmp = 0;
 	if(LOOK_UP_TABLE.size() < FRAME_TABLE_SIZE) {				// See if enough place in physical
@@ -10,6 +9,7 @@ int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offs
 		page->setReferencedBit(true);
 		page->setPageFrameId(pageFrameNumber );
 		page->setModifiedBit(modified);
+        page->setPageError(page->getPageError()+1);
 		LOOK_UP_TABLE.push_back(make_pair(page, process));
 		tmp = ( pageFrameNumber * PAGE_SIZE ) + offset;
 	} else {
@@ -22,6 +22,7 @@ int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offs
 			page->setPresentBit(true);
 			page->setReferencedBit(true);
 			page->setPageFrameId(indexOfSwapped);
+            page->setPageError(page->getPageError()+1);
 			page->setModifiedBit(modified);
 			tmp = page->getPageFrameId() * PAGE_SIZE + offset;
 		} else {
@@ -31,8 +32,6 @@ int MMU::getPhysicalAddressWhenNotPresent(Process* process, Page* page, int offs
 	return tmp;
 }
 
-
-//TODO: see if works
 int MMU::convertToPhysicalAddress(const string &address, Process* process, bool modified) {
 	int physicalAddress = 0;
 	int virtualAddress = stoul(address, 0, 16);			// convert given hex. string to int address
@@ -55,7 +54,6 @@ int MMU::convertToPhysicalAddress(const string &address, Process* process, bool 
 	return physicalAddress;
 }
 
-//TODO: see if works
 int swap(bool accessed, bool modified) {
 	int pageIndex = 0;
 	vector<pair<Page*, Process*>>::iterator it;

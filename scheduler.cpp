@@ -163,7 +163,25 @@ void Scheduler::clearLookUpTable(Process* proc) {
     }
 }
 
+int Scheduler::getPageErrorsFromProcess(Process *process) {
+    int sum = 0;
+    vector<Process*>::iterator it;
+    for (it = readyProcesses.begin(); it != readyProcesses.end(); it++) {
+        if((*it)->getPid() == process->getPid()) {
+            vector<Page*> tmp = (*it)->getPageTable();
+            vector<Page*>::iterator itr;
+            for (itr = tmp.begin(); itr != tmp.end(); itr++) {
+                sum+=(*itr)->getPageError();
+            }
+        }
+    }
+    return sum;
+}
+
 int Scheduler::stopProcess(Process* process) {
+    int pageErrors = getPageErrorsFromProcess(process);
+    cout << "\n\n" <<setw(10) << "Amounts of process errors inside the process pid/name: " << process->getPid()
+         << "/" << process->getFileName() << " are " << pageErrors << endl;
     clearLookUpTable(process);
 	deleteRunningProcess(process);
 	if(getReadyProcesses().size() > 0) {

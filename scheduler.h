@@ -20,6 +20,7 @@ public:
 	void deleteRunningProcess(Process* process);
 	void deleteBlockedProcess(Process* process);
     void clearLookUpTable(Process* proc);
+    int getPageErrorsFromProcess(Process* process);
 	void startProcess();
 	void updateWait();
 	int stopProcess(Process* process);

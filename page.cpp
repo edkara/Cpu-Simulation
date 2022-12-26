@@ -5,6 +5,7 @@ Page::Page() {
 	this->present = 0;
 	this->modified = 0;
 	this->referenced = 0;
+    this->pageError = 0;
 }
 
 int Page::getPageFrameId() {
@@ -40,6 +41,13 @@ void Page::setReferencedBit(bool accessed) {
 	this->referenced = accessed;
 }
 
+int Page::getPageError() {
+    return this->pageError;
+}
+
+void Page::setPageError(int n) {
+    this->pageError = n;
+}
 
 Page::~Page() {
 

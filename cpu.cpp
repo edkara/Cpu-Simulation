@@ -144,7 +144,6 @@ void Cpu::execute(Scheduler* scheduler, MMU* mmu) {
 				int terminate = scheduler->stopProcess(runningProcess);
 				if(terminate) {
 					cout << "The running process was deleted!" << endl;
-
                     //HDD.erase( next( begin( HDD ), indexOfProcess ) );
 					if(scheduler->getBlockedProcesses().size() == 0) {
 						cout << "There was no blocked or ready processes. So I have stopped the simulation! Bye." << endl;
